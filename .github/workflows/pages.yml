@@ -1,0 +1,90 @@
+name: Public site and daily snapshot
+on:
+  push:
+    branches: [main, master]
+    paths:
+      [
+        "website/**",
+        "scripts/**",
+        ".github/workflows/pages.yml",
+        "package.json",
+        "package-lock.json",
+      ]
+  pull_request:
+    paths: ["website/**", "scripts/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+    inputs:
+      refresh_snapshot:
+        description: Read a new snapshot from Foundry before publishing
+        type: boolean
+        default: false
+  schedule:
+    # Daily 09:17 UTC. GitHub may delay scheduled jobs; this is not an exact 24-hour SLA.
+    - cron: "17 9 * * *"
+permissions:
+  contents: read
+concurrency:
+  group: ymffl-pages-${{ github.event_name == 'pull_request' && github.ref || 'production' }}
+  cancel-in-progress: false
+jobs:
+  build:
+    if: (github.event_name == 'pull_request' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch)) && (github.event_name != 'schedule' || vars.ENABLE_DAILY_SNAPSHOT == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_snapshot) }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install public website dependencies (no Foundry credentials)
+        working-directory: website
+        run: npm ci
+      - name: Install publisher dependencies
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_snapshot)
+        env:
+          FOUNDRY_TOKEN: ${{ secrets.FOUNDRY_NPM_TOKEN }}
+        run: npm ci --ignore-scripts
+      - name: Read and validate current Foundry state
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_snapshot)
+        env:
+          FOUNDRY_URL: ${{ vars.FOUNDRY_URL }}
+          FOUNDRY_ONTOLOGY_RID: ${{ vars.FOUNDRY_ONTOLOGY_RID }}
+          FOUNDRY_LEAGUE_ID: ${{ vars.FOUNDRY_LEAGUE_ID }}
+          FOUNDRY_CLIENT_ID: ${{ secrets.FOUNDRY_CLIENT_ID }}
+          FOUNDRY_CLIENT_SECRET: ${{ secrets.FOUNDRY_CLIENT_SECRET }}
+        run: npx --no-install tsx scripts/export-snapshot.ts
+      - name: Test and build static site
+        working-directory: website
+        env:
+          SITE_BASE_PATH: /${{ github.event.repository.name }}/
+        run: npm test && npm run build
+      - name: Persist validated snapshot so code deployments do not revert the baseline
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_snapshot)
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add website/public/data/snapshot.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish daily league snapshot"
+            git push
+          fi
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: website/dist
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    steps:
+      - name: Deploy static site
+        uses: actions/deploy-pages@v4

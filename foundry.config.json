@@ -1,0 +1,12 @@
+{
+  "foundryUrl": "https://drover.usw-3.palantirfoundry.com",
+  "site": {
+    "application": "ri.third-party-applications.main.application.cf5749af-b3a0-46e8-ba23-2b0566f95851",
+    "directory": "./dist",
+    "autoVersion": {
+      "type": "git-describe",
+      "tagPrefix": ""
+    },
+    "uploadOnly": false
+  }
+}
