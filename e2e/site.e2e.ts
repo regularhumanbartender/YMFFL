@@ -7,6 +7,8 @@ const fixture: unknown = JSON.parse(
 
 // Keep interaction tests deterministic after daily snapshots replace public JSON.
 test.beforeEach(async ({ page }) => {
+  // Exercise the original one-file deployment path even when a new manifest is checked in.
+  await page.route("**/data/manifest.json", (route) => route.fulfill({ status: 404, body: "" }));
   await page.route("**/data/snapshot.json", (route) => route.fulfill({ json: fixture }));
 });
 
@@ -22,6 +24,8 @@ test("anonymous mobile-friendly snapshot and all navigation views", async ({ pag
   await page.goto("./");
   await expect(page.getByRole("heading", { name: "Build your edge." })).toBeVisible();
   await expect(page.getByText("Preview data.", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Season / keeper cycle")).toHaveValue("demo-2026");
+  await expect(page.getByRole("option", { name: "2025–26 · Demo" })).toHaveCount(1);
   await expect(page.getByRole("switch", { name: "Remove Josh Allen" })).toBeDisabled();
   for (const name of ["League budgets", "Trade lab", "Rules", "Roster"]) {
     await page.getByRole("button", { name, exact: true }).click();
@@ -75,7 +79,7 @@ test("trade simulation changes budget without network writes", async ({ page }) 
   await expect(budget).not.toHaveText(before!);
   await page.getByRole("button", { name: "Trade lab", exact: true }).click();
   await page.getByRole("button", { name: "Remove", exact: true }).click();
-  await page.getByLabel("Receiving team").selectOption("team-0");
+  await page.getByLabel("Team B", { exact: true }).selectOption("team-0");
   await page.getByLabel("Auction dollars", { exact: true }).fill("10");
   await page.getByRole("button", { name: "Add hypothetical trade" }).click();
   await expect(page.getByRole("alert")).toHaveText("Choose two different teams.");

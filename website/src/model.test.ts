@@ -11,6 +11,14 @@ import {
   snapshotSchema,
 } from "./model";
 
+const cash = (fromTeamId: string, toTeamId: string, amount: number) => ({
+  fromTeamId,
+  toTeamId,
+  amount,
+  fromPlayerIds: [],
+  toPlayerIds: [],
+  cashDirection: "fromTo" as const,
+});
 const snapshot = () => snapshotSchema.parse(structuredClone(fixture));
 const sample = (fields: Partial<Player> = {}): Player => ({
   ...snapshot().players[0],
@@ -126,7 +134,7 @@ describe("scenario accounting", () => {
   it("conserves total budget on a hypothetical transfer", () => {
     const s = snapshot();
     const start = budgets(s, emptyScenario());
-    const scenario = addTrade(s, emptyScenario(), s.teams[0].teamId, s.teams[1].teamId, 20);
+    const scenario = addTrade(s, emptyScenario(), cash(s.teams[0].teamId, s.teams[1].teamId, 20));
     const end = budgets(s, scenario);
     expect(end[0].remaining).toBe(start[0].remaining - 20);
     expect(end[1].remaining).toBe(start[1].remaining + 20);
@@ -137,22 +145,24 @@ describe("scenario accounting", () => {
   it.each([0, -1, 1.5, Infinity, NaN])("rejects invalid trade amount %s", (amount) => {
     const s = snapshot();
     expect(() =>
-      addTrade(s, emptyScenario(), s.teams[0].teamId, s.teams[1].teamId, amount),
+      addTrade(s, emptyScenario(), cash(s.teams[0].teamId, s.teams[1].teamId, amount)),
     ).toThrow();
   });
   it("rejects same or missing team", () => {
     const s = snapshot();
-    expect(() => addTrade(s, emptyScenario(), s.teams[0].teamId, s.teams[0].teamId, 1)).toThrow();
-    expect(() => addTrade(s, emptyScenario(), "missing", s.teams[1].teamId, 1)).toThrow();
+    expect(() =>
+      addTrade(s, emptyScenario(), cash(s.teams[0].teamId, s.teams[0].teamId, 1)),
+    ).toThrow();
+    expect(() => addTrade(s, emptyScenario(), cash("missing", s.teams[1].teamId, 1))).toThrow();
   });
   it("rejects overspending and accepts exact remaining balance", () => {
     const s = snapshot();
     const n = s.teams[0].remainingBudget;
     expect(() =>
-      addTrade(s, emptyScenario(), s.teams[0].teamId, s.teams[1].teamId, n + 1),
+      addTrade(s, emptyScenario(), cash(s.teams[0].teamId, s.teams[1].teamId, n + 1)),
     ).toThrow();
     expect(
-      addTrade(s, emptyScenario(), s.teams[0].teamId, s.teams[1].teamId, n).trades,
+      addTrade(s, emptyScenario(), cash(s.teams[0].teamId, s.teams[1].teamId, n)).trades,
     ).toHaveLength(1);
   });
 });

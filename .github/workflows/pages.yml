@@ -53,7 +53,8 @@ jobs:
         env:
           FOUNDRY_URL: ${{ vars.FOUNDRY_URL }}
           FOUNDRY_ONTOLOGY_RID: ${{ vars.FOUNDRY_ONTOLOGY_RID }}
-          FOUNDRY_LEAGUE_ID: ${{ vars.FOUNDRY_LEAGUE_ID }}
+          # Empty/unset means all YMFFL cycles; set an exact ymffl-YYYY key for a selected refresh.
+          FOUNDRY_LEAGUE_ID: ${{ vars.FOUNDRY_LEAGUE_ID || 'all' }}
           FOUNDRY_CLIENT_ID: ${{ secrets.FOUNDRY_CLIENT_ID }}
           FOUNDRY_CLIENT_SECRET: ${{ secrets.FOUNDRY_CLIENT_SECRET }}
         run: npx --no-install tsx scripts/export-snapshot.ts
@@ -67,7 +68,7 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add website/public/data/snapshot.json
+          git add website/public/data/manifest.json website/public/data/*.json
           if ! git diff --cached --quiet; then
             git commit -m "Publish daily league snapshot"
             git push

@@ -140,16 +140,28 @@ p {
   color: #b1bfb0;
   margin-top: 3px;
 }
-.season-tag {
-  border: 1px solid #425443;
-  padding: 8px 11px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 10px;
-  letter-spacing: 1px;
+.cycle-picker {
+  display: grid;
+  gap: 5px;
+  min-width: 190px;
+}
+.cycle-picker > span {
+  color: #d5e2ce;
+  font-size: 11px;
   font-weight: 650;
+}
+.cycle-picker select {
+  min-height: 44px;
+  width: 100%;
+  background: #eff7e7;
+  color: #142b20;
+  border: 2px solid #b6d685;
+  font-size: 17px;
+  font-weight: 750;
+}
+.cycle-picker small {
+  color: #bdccba;
+  font-size: 11px;
 }
 .live-dot {
   width: 6px;
@@ -730,11 +742,74 @@ main {
   font-weight: 650;
   color: #6c7e60;
 }
-.trade-arrow {
-  color: #8ca171;
-  text-align: center;
-  font-size: 24px;
-  margin: -8px 0;
+.trade-grid > *,
+.trade-row > div,
+.trade-package,
+.package-player > span {
+  min-width: 0;
+}
+.trade-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+}
+.trade-package {
+  display: grid;
+  gap: 10px;
+}
+.trade-balance {
+  font-size: 12px;
+}
+.player-package {
+  min-width: 0;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.player-package legend {
+  font-size: 12px;
+  font-weight: 650;
+  padding: 0 4px;
+}
+.package-options {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.trade-form .package-player {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  min-height: 48px;
+  color: #253b2e;
+  cursor: pointer;
+  border-bottom: 1px solid var(--line);
+}
+.package-player input {
+  flex-shrink: 0;
+}
+.package-player strong,
+.package-player small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.package-player small {
+  margin-top: 4px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.player-package:disabled {
+  opacity: 0.6;
+}
+.trade-row {
+  overflow-wrap: anywhere;
+}
+.trade-row .text-button {
+  flex-shrink: 0;
+}
+.trade-grid > .panel > .subtle {
+  padding: 12px 20px;
 }
 .primary-button {
   background: var(--green);
@@ -909,10 +984,12 @@ footer > span {
   .brand span {
     font-size: 8px;
   }
-  .season-tag {
-    margin-left: auto;
-    font-size: 8px;
-    padding: 7px 8px;
+  .header-inner {
+    flex-wrap: wrap;
+  }
+  .cycle-picker {
+    width: 100%;
+    min-width: 0;
   }
   .read-only-label {
     display: none;

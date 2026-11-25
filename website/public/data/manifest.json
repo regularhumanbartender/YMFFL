@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "defaultLeagueId": "ymffl-2027",
+  "cycles": [
+    {
+      "leagueId": "ymffl-2027",
+      "keeperYear": 2027,
+      "statsYear": 2026,
+      "label": "2026–27",
+      "snapshotId": "a2300e76782a95cc2bce",
+      "source": "foundry",
+      "file": "ymffl-2027.ff55f794fc1de2619cb9.json"
+    },
+    {
+      "leagueId": "ymffl-2026",
+      "keeperYear": 2026,
+      "statsYear": 2025,
+      "label": "2025–26",
+      "snapshotId": "3e7a14117b8e74741521",
+      "source": "foundry",
+      "file": "ymffl-2026.3431538e65b260510cf3.json"
+    }
+  ]
+}

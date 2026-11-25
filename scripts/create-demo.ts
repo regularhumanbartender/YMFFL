@@ -1,6 +1,6 @@
 // Explicit development fixture generator. NEVER called by publication workflows.
-import { mkdir, writeFile } from "node:fs/promises";
 import { type League, type Player, keeperCost, snapshotSchema } from "../website/src/model";
+import { publishSnapshots } from "./publish-snapshots";
 
 const league: League = {
   leagueId: "demo-2026",
@@ -114,6 +114,5 @@ const snapshot = snapshotSchema.parse({
   players,
   trades: [],
 });
-await mkdir("website/public/data", { recursive: true });
-await writeFile("website/public/data/snapshot.json", JSON.stringify(snapshot, null, 2) + "\n");
+await publishSnapshots([snapshot]);
 console.log("Created clearly labeled demo fixture; no Foundry data was read.");
